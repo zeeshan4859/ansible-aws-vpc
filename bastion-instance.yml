@@ -49,3 +49,9 @@
         group_id: "{{bastionSG_out.group_id}}"
         vpc_subnet_id: "{{pubsub1id}}"
       register: bastion_out
+
+        - name: insert bastinsSGid in var out file
+          blockinfile:
+            path: output_var
+            block: |
+              BastionSGid: bastionSG_out.group_id

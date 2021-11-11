@@ -22,3 +22,33 @@
         dest: ./loginkey_vpro.pem
         mode: 0600
       when: vprokey_out.changed
+
+    - name: create security group for LB
+      ec2_group:
+        name: vproELB-sg
+        description: allow port 80 for erverywhere asd all port within sg
+        region: "{{region}}"
+        vpc_id: "{{vpcid}}"
+        rules:
+          - proto: tcp
+            from_port: 80
+            to_port: 80
+            cidr_ip: 0.0.0.0/0
+      register: vproELB-sg_out
+    - name: create security group for vproack
+      ec2_group:
+        name: vproStack-sg
+        description: allow port 80 for erverywhere asd all port within sg
+        region: "{{region}}"
+        vpc_id: "{{vpcid}}"
+        purge_rule: no
+        rules:
+          - proto: tcp
+            from_port: 80
+            to_port: 80
+            group_id: "{{vproELB-sg_out.group_id}}"
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            group_id: "{{}}
+      register: vproELB-sg_out
