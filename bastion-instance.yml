@@ -1,0 +1,51 @@
+- hosts: localhost
+  connection: local
+  tasks:
+    - name: Import VPC variable
+      include_vars: bastion_setup
+
+    - name: Import VPC output variable
+      include_vars: output_var
+
+    - name: sample ec2 key
+      ec2_key:
+       name: vprofile-key
+       region: "{{region}}"
+      register: key_out
+
+    - name: store login key
+      copy:
+        content: "{{key_out.key.private_key}}"
+        dest: "./bastion_key.pem"
+        mode: 0600
+      when: key_out.changed
+
+    - name: create security group
+      ec2_group:
+        name: Bastion-host-sg
+        description: allow port 22from
+        region: "{{region}}"
+        vpc_id: "{{vpcid}}"
+        rules:
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            cidr_ip: 0.0.0.0/0
+      register: bastionSG_out
+
+    - name: Creationg Bastion Host
+      ec2_instance:
+        key_name: vprofile-key
+        region: "{{region}}"
+        instance_type: t2.micro
+        image: "{{bastion_ami}}"
+        wait: yes
+        wait_timeout: 300
+        instance_tags:
+          Name: "Bastion-instance"
+        exact_count: 1
+        count_tag:
+          Name: "Bastion-instance"
+        group_id: "{{bastionSG_out.group_id}}"
+        vpc_subnet_id: "{{pubsub1id}}"
+      register: bastion_out
