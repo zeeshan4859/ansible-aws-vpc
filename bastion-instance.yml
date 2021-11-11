@@ -34,7 +34,7 @@
       register: bastionSG_out
 
     - name: Creationg Bastion Host
-      ec2_instance:
+      ec2:
         key_name: vprofile-key
         region: "{{region}}"
         instance_type: t2.micro
