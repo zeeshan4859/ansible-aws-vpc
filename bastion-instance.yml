@@ -2,7 +2,7 @@
   connection: local
   tasks:
     - name: Import VPC variable
-      include_vars: bastion_setup
+      include_vars: vpc_setup
 
     - name: Import VPC output variable
       include_vars: output_var

@@ -20,6 +20,6 @@ zone2: us-east-1b
 zone3: us-east-1c
 
 state: present
-
+# Bastion setup var
 bastion_ami: ami-01cc34ab2709337aa
 MYIP: 202.83.170.2
