@@ -25,7 +25,7 @@
 
     - name: create security group for LB
       ec2_group:
-        name: vproELB-sg
+        name: vproELBsg
         description: allow port 80 for erverywhere asd all port within sg
         region: "{{region}}"
         vpc_id: "{{vpcid}}"
@@ -34,7 +34,8 @@
             from_port: 80
             to_port: 80
             cidr_ip: 0.0.0.0/0
-      register: vproELB-sg_out
+      register: vproELBsg_out
+
     - name: create security group for vprostack
       ec2_group:
         name: vproStack-sg
@@ -46,7 +47,7 @@
           - proto: tcp
             from_port: 80
             to_port: 80
-            group_id: "{{vproELB-sg_out.group_id}}"
+            group_id: "{{vproELBsg_out.group_id}}"
           - proto: tcp
             from_port: 22
             to_port: 22
@@ -63,7 +64,88 @@
         rules:
           - proto: all
             group_id: "{{vproStack-sg_out.group_id}}"
+    - name: Creationg Nginix web01
+      ec2:
+        key_name: vprokey
+        region: "{{region}}"
+        instance_type: t2.micro
+        image: "{{nginx_ami}}"
+        wait: yes
+        wait_timeout: 300
+        instance_tags:
+          Name: "web01"
+        exact_count: 1
+        count_tag:
+          Name: "web01"
+        group_id: "{{vproStack-sg_out.group_id}}"
+        vpc_subnet_id: "{{privsub1id}}"
+      register: web01_out
+    - name: Creationg Tomcat app01
+      ec2:
+        key_name: vprokey
+        region: "{{region}}"
+        instance_type: t2.micro
+        image: "{{tomcat_ami}}"
+        wait: yes
+        wait_timeout: 300
+        instance_tags:
+          Name: "app01"
+        exact_count: 1
+        count_tag:
+          Name: "app01"
+        group_id: "{{vproStack-sg_out.group_id}}"
+        vpc_subnet_id: "{{privsub1id}}"
+      register: app01_out
+    - name: Creationg Memcache mc01
+      ec2:
+        key_name: vprokey
+        region: "{{region}}"
+        instance_type: t2.micro
+        image: "{{memcache_ami}}"
+        wait: yes
+        wait_timeout: 300
+        instance_tags:
+          Name: "mc01"
+        exact_count: 1
+        count_tag:
+          Name: "mc01"
+        group_id: "{{vproStack-sg_out.group_id}}"
+        vpc_subnet_id: "{{privsub1id}}"
+      register: mc01_out
+    - name: Creationg RabitMQ rmq01
+      ec2:
+        key_name: vprokey
+        region: "{{region}}"
+        instance_type: t2.micro
+        image: "{{memcache_ami}}"
+        wait: yes
+        wait_timeout: 300
+        instance_tags:
+          Name: "rmq01"
+        exact_count: 1
+        count_tag:
+          Name: "rmq01"
+        group_id: "{{vproStack-sg_out.group_id}}"
+        vpc_subnet_id: "{{privsub1id}}"
+      register: rmq_out
+    - name: Creationg MySQL db01
+      ec2:
+        key_name: vprokey
+        region: "{{region}}"
+        instance_type: t2.micro
+        image: "{{memcache_ami}}"
+        wait: yes
+        wait_timeout: 300
+        instance_tags:
+          Name: "db01"
+        exact_count: 1
+        count_tag:
+          Name: "db01"
+        group_id: "{{vproStack-sg_out.group_id}}"
+        vpc_subnet_id: "{{privsub1id}}"
+      register: db01_out
 
-
+    - debug:
+        var: db01_out
 
 
