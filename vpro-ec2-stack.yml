@@ -35,7 +35,7 @@
             to_port: 80
             cidr_ip: 0.0.0.0/0
       register: vproELB-sg_out
-    - name: create security group for vproack
+    - name: create security group for vprostack
       ec2_group:
         name: vproStack-sg
         description: allow port 80 for erverywhere asd all port within sg
@@ -50,5 +50,20 @@
           - proto: tcp
             from_port: 22
             to_port: 22
-            group_id: "{{}}
-      register: vproELB-sg_out
+            group_id: "{{BastionSGid}}"
+      register: vproStack-sg_out
+
+    - name: create security group for vprostack
+      ec2_group:
+        name: vproStack-sg
+        description: allow port 80 for erverywhere asd all port within sg
+        region: "{{region}}"
+        vpc_id: "{{vpcid}}"
+        purge_rule: no
+        rules:
+          - proto: all
+            group_id: "{{vproStack-sg_out.group_id}}"
+
+
+
+
