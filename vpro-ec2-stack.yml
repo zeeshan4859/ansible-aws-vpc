@@ -38,11 +38,11 @@
 
     - name: create security group for vprostack
       ec2_group:
-        name: vproStack-sg
+        name: vproStackSG
         description: allow port 80 for erverywhere asd all port within sg
         region: "{{region}}"
         vpc_id: "{{vpcid}}"
-        purge_rule: no
+        purge_rules: no
         rules:
           - proto: tcp
             from_port: 80
@@ -52,18 +52,18 @@
             from_port: 22
             to_port: 22
             group_id: "{{BastionSGid}}"
-      register: vproStack-sg_out
+      register: vproStackSG_out
 
     - name: create security group for vprostack
       ec2_group:
-        name: vproStack-sg
+        name: vproStackSG
         description: allow port 80 for erverywhere asd all port within sg
         region: "{{region}}"
         vpc_id: "{{vpcid}}"
-        purge_rule: no
+        purge_rules: no
         rules:
           - proto: all
-            group_id: "{{vproStack-sg_out.group_id}}"
+            group_id: "{{vproStackSG_out.group_id}}"
     - name: Creationg Nginix web01
       ec2:
         key_name: vprokey
@@ -77,7 +77,7 @@
         exact_count: 1
         count_tag:
           Name: "web01"
-        group_id: "{{vproStack-sg_out.group_id}}"
+        group_id: "{{vproStackSG_out.group_id}}"
         vpc_subnet_id: "{{privsub1id}}"
       register: web01_out
     - name: Creationg Tomcat app01
@@ -93,7 +93,7 @@
         exact_count: 1
         count_tag:
           Name: "app01"
-        group_id: "{{vproStack-sg_out.group_id}}"
+        group_id: "{{vproStackSG_out.group_id}}"
         vpc_subnet_id: "{{privsub1id}}"
       register: app01_out
     - name: Creationg Memcache mc01
@@ -109,7 +109,7 @@
         exact_count: 1
         count_tag:
           Name: "mc01"
-        group_id: "{{vproStack-sg_out.group_id}}"
+        group_id: "{{vproStackSG_out.group_id}}"
         vpc_subnet_id: "{{privsub1id}}"
       register: mc01_out
     - name: Creationg RabitMQ rmq01
@@ -125,7 +125,7 @@
         exact_count: 1
         count_tag:
           Name: "rmq01"
-        group_id: "{{vproStack-sg_out.group_id}}"
+        group_id: "{{vproStackSG_out.group_id}}"
         vpc_subnet_id: "{{privsub1id}}"
       register: rmq_out
     - name: Creationg MySQL db01
@@ -141,11 +141,41 @@
         exact_count: 1
         count_tag:
           Name: "db01"
-        group_id: "{{vproStack-sg_out.group_id}}"
+        group_id: "{{vproStackSG_out.group_id}}"
         vpc_subnet_id: "{{privsub1id}}"
       register: db01_out
 
     - debug:
-        var: db01_out
+        var: db01_out.tagged_instances[0].id
+
+    - local_action:
+        module: ec2_elb_lb
+        name: vprofile-elb
+        region: "{{region}}"
+        state: present
+        instance_ids:
+          - "{{web01_out.tagged_instances[0].id}}"
+        purge_instance_ids: true
+        security_group_ids: "{{vproELBsg_out.group_id}}"
+        subnets:
+          - "{{pubsub1id}}"
+          - "{{pubsub2id}}"
+          - "{{pubsub3id}}"
+        listeners:
+          - protocol: http
+            load_balancer_port: 80
+            instance_port: 80
+
+    - name: insert and update the hosts IP in the file
+      blockinfile:
+        path: hostsip
+        block: |
+          web01_ip: {{web01_out.tagged_instance[0].private_ip}}
+          app01_ip: {{app01_out.tagged_instance[0].private_ip}}
+          rmq01_ip: {{rmq01_out.tagged_instance[0].private_ip}}
+          mc01_ip: {{mc01_out.tagged_instance[0].private_ip}}
+          db01_ip: {{db01_out.tagged_instance[0].private_ip}}
+        
+
 
 
