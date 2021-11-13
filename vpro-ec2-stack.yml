@@ -169,7 +169,7 @@
 
     - name: insert and update the hosts IP in the file
       blockinfile:
-        path: hostsip
+        path: ./hostsip
         block: |
           web01_ip: {{web01_out.tagged_instances[0].private_ip}}
           app01_ip: {{app01_out.tagged_instances[0].private_ip}}
@@ -179,7 +179,7 @@
 
     - name:
       blockinfile:
-        path: inventory-vpro
+        path: ./inventory-vpro
         block: |
           web01 ansible_host={{web01_out.tagged_instances[0].private_ip}}
           app01 ansible_host={{app01_out.tagged_instances[0].private_ip}}
