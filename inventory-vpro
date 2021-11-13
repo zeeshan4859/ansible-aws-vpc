@@ -1,0 +1,37 @@
+# BEGIN ANSIBLE MANAGED BLOCK
+web01 ansible_host=172.20.4.222
+app01 ansible_host=172.20.4.235
+rmq01 ansible_host=172.20.4.125
+mc01 ansible_host=172.20.4.49
+db01 ansible_host=172.20.4.240
+cntl ansible_host=127.0.0.1 ansible_connection=local
+
+[websrvgrp]
+webo1
+
+[appsrvgrp]
+app01
+
+[rmqsrvgrp]
+rmq01
+
+[mcsrvgrp]
+mc01
+
+[dbsrvgrp]
+db01
+
+[control]
+cntl
+
+[stack_inst:children]
+websrvgrp
+appsrvgrp
+rmqsrvgrp
+mcsrvgrp
+dbsrvgrp
+
+[stack_inst: vars]
+ansible_user=ubuntu
+ansible_ssh_private_key_file=loginkey_vpro.pem
+# END ANSIBLE MANAGED BLOCK
